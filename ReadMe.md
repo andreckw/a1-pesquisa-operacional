@@ -90,4 +90,4 @@ Gerar a Matriz de Custos
 python matriz_custos.py
 
 Executar a Aplicação (Dashboard)
-[TODO: Adicionar o comando para rodar o app, ex: streamlit run app.py]
+streamlit run main.py

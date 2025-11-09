@@ -1,45 +1,44 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 import os
 
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
-if not os.path.exists("graficos"):
-    os.mkdir("graficos")
 
-df = pd.read_csv("datasets/routes.csv")
+def gerar_dados():
+    if not os.path.exists("graficos"):
+        os.mkdir("graficos")
 
-# Segundo o autor do dataset ele usou \N como um caracter para valores nulos, entao esta sendo este caracter sera alterado para nan para exclusao futura
-df = df.replace([r"\\N", r"\\n"], value=np.nan, regex=True)
+    df = pd.read_csv("datasets/routes.csv")
 
-print(f"Valores nulos no DF: \n {df.isnull().sum()}")
+    # Segundo o autor do dataset ele usou \N como um caracter para valores nulos, entao esta sendo este caracter sera alterado para nan para exclusao futura
+    df = df.replace([r"\\N", r"\\n"], value=np.nan, regex=True)
 
-# Corrige os nomes das colunas do DF
-df.columns = df.columns.str.strip()
+    print(f"Valores nulos no DF: \n {df.isnull().sum()}")
 
-#A coluna 'destination apirport' esta com erro de digitação, e aqui esta sendo corrigida
-df = df.rename(columns={'destination apirport': 'destination airport'})
+    # Corrige os nomes das colunas do DF
+    df.columns = df.columns.str.strip()
 
-# Codeshare tem pouco dado e nao sao uteis por mostrar que TALVEZ foi com outro tipo de tranporte
-# Dados nulos sao retirados juntos para nao serem utilizados
-df = df.drop(columns=["codeshare"]).dropna()
+    # A coluna 'destination apirport' esta com erro de digitação, e aqui esta sendo corrigida
+    df = df.rename(columns={"destination apirport": "destination airport"})
 
-print("\n--- Estatísticas Descritivas da Coluna 'stops' ---")
-print(df['stops'].describe())
+    # Codeshare tem pouco dado e nao sao uteis por mostrar que TALVEZ foi com outro tipo de tranporte
+    # Dados nulos sao retirados juntos para nao serem utilizados
+    df = df.drop(columns=["codeshare"]).dropna()
 
-# Mostra os aeroportos de origem mais utilizados, o principal aeroporto de destino sendo o ATL
-df['source airport'].value_counts().head(10).plot(kind='bar')
-plt.savefig("graficos/source-airport.png")
+    print("\n--- Estatísticas Descritivas da Coluna 'stops' ---")
+    print(df["stops"].describe())
 
-# Mostra os aeroportos de destino mais utilizados, o principal aeroporto de destino sendo o ATL
-plt.figure()
-df['destination airport'].value_counts().head(10).plot(kind='bar')
-plt.savefig("graficos/destination-airport.png")
+    # Mostra os aeroportos de origem mais utilizados, o principal aeroporto de destino sendo o ATL
+    df["source airport"].value_counts().head(10).plot(kind="bar")
+    plt.savefig("graficos/source-airport.png")
 
-# Mostra a distribuição do número de paradas, a maioria das rotas sendo direta
-plt.figure()
-df['stops'].value_counts().plot(kind='bar')
-plt.savefig("graficos/stops.png")
+    # Mostra os aeroportos de destino mais utilizados, o principal aeroporto de destino sendo o ATL
+    plt.figure()
+    df["destination airport"].value_counts().head(10).plot(kind="bar")
+    plt.savefig("graficos/destination-airport.png")
 
-plt.show()
-
+    # Mostra a distribuição do número de paradas, a maioria das rotas sendo direta
+    plt.figure()
+    df["stops"].value_counts().plot(kind="bar")
+    plt.savefig("graficos/stops.png")
