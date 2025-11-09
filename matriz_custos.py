@@ -38,7 +38,7 @@ def gerar_matriz_custos():
     # 4. DEFINIR O CUSTO (paradas + 1)
     # O custo de um voo com 0 paradas é 1 (o próprio voo)
     # O custo de um voo com 1 parada é 2 (voo A->B + voo B->C)
-    df_top10["custo"] = df_top10["stops"]
+    df_top10["custo"] = df_top10["stops"] + 1
 
     # 5. GARANTIR O CUSTO MÍNIMO
     # Pode haver duas rotas de ATL para ORD (uma com 0, outra com 1 parada).
