@@ -11,7 +11,6 @@ def gerar_dados():
 
     df = pd.read_csv("datasets/routes.csv")
 
-    # Segundo o autor do dataset ele usou \N como um caracter para valores nulos, entao esta sendo este caracter sera alterado para nan para exclusao futura
     df = df.replace([r"\\N", r"\\n"], value=np.nan, regex=True)
 
     print(f"Valores nulos no DF: \n {df.isnull().sum()}")
