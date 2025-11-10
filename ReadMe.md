@@ -73,14 +73,16 @@ $$
 #### Restrições
 
 1.  **Sair de cada aeroporto 1 vez:**
-    $$
-    \sum_{j=1, j \neq i}^{N} x_{ij} = 1 \quad (\text{para todo } i = 1, ..., N)
-    $$
+
+$$
+\sum_{j=1, j \neq i}^{N} x_{ij} = 1 \quad (\text{para todo } i = 1, ..., N)
+$$
 
 2.  **Chegar em cada aeroporto 1 vez:**
-    $$
-    \sum_{i=1, i \neq j}^{N} x_{ij} = 1 \quad (\text{para todo } j = 1, ..., N)
-    $$
+
+$$
+\sum_{i=1, i \neq j}^{N} x_{ij} = 1 \quad (\text{para todo } j = 1, ..., N)
+$$
 
 3.  **Eliminação de Sub-tours:** Garantia de que a solução seja um único tour. Esta restrição é implementada implicitamente pela lógica de busca do nosso algoritmo.
 
