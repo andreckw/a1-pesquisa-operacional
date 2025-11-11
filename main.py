@@ -53,6 +53,63 @@ def carregar_coordenadas():
         return {}
 
 
+def rodar_vizinho_mais_proximo(matriz_custos, aeroporto_inicio):
+    """
+    Executa a heurística do Vizinho Mais Próximo (Nearest Neighbor).
+    """
+    start_time = time.time()
+    
+    aeroportos = matriz_custos.index.tolist()
+    lookup = {nome: i for i, nome in enumerate(aeroportos)}
+    matriz = matriz_custos.to_numpy()
+    N = len(aeroportos)
+    
+    start_idx = lookup[aeroporto_inicio]
+    
+    rota_indices = [start_idx]
+    rota_nomes = [aeroporto_inicio]
+    custo_total = 0
+    
+    visitados = np.zeros(N, dtype=bool)
+    visitados[start_idx] = True
+    
+    atual_idx = start_idx
+    
+    for _ in range(N - 1):
+        custos_vizinhos = matriz[atual_idx, :].copy()
+        custos_vizinhos[visitados] = np.inf
+        
+        proximo_idx = np.argmin(custos_vizinhos)
+        
+        custo_ida = custos_vizinhos[proximo_idx]
+        if custo_ida == np.inf:
+            return {
+                "custo": np.inf,
+                "rota": " -> ".join(rota_nomes) + " -> [Rota incompleta]",
+                "tempo_execucao": time.time() - start_time
+            }
+        
+        custo_total += custo_ida
+        rota_indices.append(proximo_idx)
+        rota_nomes.append(aeroportos[proximo_idx])
+        visitados[proximo_idx] = True
+        atual_idx = proximo_idx
+
+    custo_retorno = matriz[atual_idx, start_idx]
+    if custo_retorno == np.inf:
+        custo_total = np.inf
+        rota_nomes.append(f"[{aeroporto_inicio} - RETORNO IMPOSSÍVEL]")
+    else:
+        custo_total += custo_retorno
+        rota_nomes.append(aeroporto_inicio)
+
+    tempo_total = time.time() - start_time
+    return {
+        "custo": custo_total,
+        "rota": " -> ".join(rota_nomes),
+        "tempo_execucao": tempo_total
+    }
+
 matriz_custos = carregar_dados()
 COORDENADAS = carregar_coordenadas()
 
@@ -128,22 +185,39 @@ with tab2:
         tempo_limite = col3.number_input(
             "Tempo Limite (segundos):", min_value=10, max_value=300, value=60
         )
+
+        budget_inicial = st.number_input(
+            "Budget Máximo (KM):", 
+            min_value=0.0, 
+            value=500000.0,
+            format="%.0f",
+            help="Defina um teto de custo inicial. O B&B podará rotas que excedam isso."
+        )
+
         submitted = st.form_submit_button("▶️ Rodar Algoritmo B&B")
 
     if submitted:
         st.info(
-            f"Executando B&B... (Iniciando em: {aeroporto_inicio}, Busca: {tipo_busca}, Limite: {tempo_limite}s)"
+            f"Executando B&B e Heurística... (Iniciando em: {aeroporto_inicio}, Busca: {tipo_busca}, Limite: {tempo_limite}s, Budget: {budget_inicial}km)"
         )
         with st.spinner("Calculando melhor rota... Isso pode demorar."):
             resultado_bnb = rodar_branch_and_bound(
-                matriz_custos, aeroporto_inicio, tipo_busca, tempo_limite
+                matriz_custos, aeroporto_inicio, tipo_busca, tempo_limite, budget_inicial
             )
-        st.success("Execução do B&B concluída!")
-        st.write(f"Nós explorados: {resultado_bnb['nos_explorados']}")
-        st.write(f"Tempo de execução: {resultado_bnb['tempo_execucao']:.4f}s")
+            
+            resultado_heuristica = rodar_vizinho_mais_proximo(
+                matriz_custos, aeroporto_inicio
+            )
+
+        st.success("Execução concluída!")
+        
+        if 'nos_explorados' in resultado_bnb:
+            st.write(f"Nós explorados (B&B): {resultado_bnb['nos_explorados']}")
+            
+        st.write(f"Tempo B&B: {resultado_bnb['tempo_execucao']:.4f}s | Tempo Heurística: {resultado_heuristica['tempo_execucao']:.4f}s")
         st.write("Os resultados estão disponíveis na Aba 3.")
         st.session_state['resultado_bnb'] = resultado_bnb
-        # st.session_state['heuristica'] = resultado_heuristica # Para a Frente 4
+        st.session_state['resultado_heuristica'] = resultado_heuristica
 
 
 # =============================================================================
@@ -179,26 +253,47 @@ with tab3:
 
     # --- Coluna da Solução Heurística (FRENTE 4) ---
     with col2:
-        st.markdown("### 🏃‍♂️ Heurística Gulosa (Comparação)")
+        st.markdown("### 🏃‍♂️ Heurística Gulosa (Vizinho Próximo)")
         
-        # TODO: A lógica da Frente 4 (Heurística) virá aqui.
-        st.metric("Custo Total (Distância)", "Aguardando...")
-        st.write("**Rota:**")
-        st.code("Aguardando...")
+        if 'resultado_heuristica' in st.session_state:
+            res_heu = st.session_state['resultado_heuristica']
+            custo_formatado_heu = f"{res_heu['custo']:.2f} km" if res_heu['custo'] != np.inf else "inf"
+            
+            st.metric("Custo Total (Distância)", custo_formatado_heu)
+            st.write("**Rota:**")
+            st.code(res_heu['rota'])
+        else:
+            st.metric("Custo Total (Distância)", "Aguardando...")
+            st.write("**Rota:**")
+            st.code("Aguardando...")
 
     st.subheader("Comparação de Desempenho")
     
-    # TODO: Atualizar este gráfico quando a Frente 4 estiver pronta
-    df_comparacao = pd.DataFrame(
-        {
-            "Algoritmo": ["Branch and Bound", "Heurística Gulosa"],
-            "Custo (KM)": [
-                res_bnb.get('custo', 0) if 'resultado_bnb' in st.session_state else 0, 
-                0 # Custo da heurística (Frente 4)
-            ],
-        }
-    )
-    st.bar_chart(df_comparacao.set_index("Algoritmo"))
+    # --- INÍCIO DA MODIFICAÇÃO (Gráfico) ---
+    if 'resultado_bnb' in st.session_state and 'resultado_heuristica' in st.session_state:
+        res_bnb = st.session_state['resultado_bnb']
+        res_heu = st.session_state['resultado_heuristica']
+        
+        custo_bnb = res_bnb.get('custo', 0)
+        custo_heu = res_heu.get('custo', 0)
+
+        df_comparacao = pd.DataFrame(
+            {
+                "Algoritmo": ["Branch and Bound", "Heurística Gulosa"],
+                "Custo (KM)": [
+                    custo_bnb if custo_bnb != np.inf else 0, 
+                    custo_heu if custo_heu != np.inf else 0
+                ],
+            }
+        )
+        st.bar_chart(df_comparacao.set_index("Algoritmo"))
+    
+    else:
+        # Gráfico placeholder se nada rodou ainda
+        df_comparacao = pd.DataFrame(
+            { "Algoritmo": ["Branch and Bound", "Heurística Gulosa"], "Custo (KM)": [0, 0] }
+        )
+        st.bar_chart(df_comparacao.set_index("Algoritmo"))
 
 
     st.subheader("Visualização da Rota no Mapa")

@@ -5,7 +5,7 @@ from collections import deque
 
 
 class TspSolver:
-    def __init__(self, matriz_custos, aeroporto_inicio, tipo_busca, tempo_limite):
+    def __init__(self, matriz_custos, aeroporto_inicio, tipo_busca, tempo_limite, budget_inicial=np.inf):
         self.aeroportos = matriz_custos.index.tolist()
         self.matriz = matriz_custos.to_numpy()
         self.lookup = {nome: i for i, nome in enumerate(self.aeroportos)}
@@ -15,6 +15,7 @@ class TspSolver:
         self.start_node_nome = aeroporto_inicio
         self.tipo_busca = tipo_busca
         self.tempo_limite = tempo_limite
+        self.melhor_custo = budget_inicial
 
         self.melhor_custo = np.inf
         self.melhor_rota_indices = []
@@ -157,6 +158,6 @@ class TspSolver:
                     novo_visitados[v] = True
                     heapq.heappush(heap, (custo + self.matriz[u, v], v, rota + [v], novo_visitados))
 
-def rodar_branch_and_bound(matriz_custos, aeroporto_inicio, tipo_busca, tempo_limite):
-    solver = TspSolver(matriz_custos, aeroporto_inicio, tipo_busca, tempo_limite)
+def rodar_branch_and_bound(matriz_custos, aeroporto_inicio, tipo_busca, tempo_limite, budget_inicial=np.inf):
+    solver = TspSolver(matriz_custos, aeroporto_inicio, tipo_busca, tempo_limite, budget_inicial)
     return solver.resolver()

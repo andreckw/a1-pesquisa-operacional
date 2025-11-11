@@ -117,6 +117,7 @@ A interface do usuário foi desenvolvida com **Streamlit**, permitindo interativ
         * Aeroporto de Início (lido dinamicamente da matriz).
         * Tipo de Busca (DFS, BFS, Best-First).
         * Tempo Limite (em segundos).
+        * Budget Máximo
     * Ao clicar em "Rodar", a função B&B é executada e o resultado é salvo no `st.session_state`.
 
 * **Página 3: Resultados:**
@@ -128,11 +129,9 @@ A interface do usuário foi desenvolvida com **Streamlit**, permitindo interativ
 
 ## 5. Evidências e Validação (Frente 4)
 
-`[TODO: Esta seção será preenchida pela Frente 4]`
+    * A Heurística (5.1) foi implementada (Heurística Gulosa/Vizinho Mais Próximo) e comparada na "Aba 3". *
 
-* **Heurística de Comparação:** (Implementar um algoritmo guloso, ex: Vizinho Mais Próximo)
-* **Testes Unitários:** (Criar testes para a classe `TspSolver`)
-* **Análise de Resultados:** (Comparar o Custo/Tempo do B&B vs. Heurística)
+    * Os Testes Unitários (5.3) foram criados (arquivo test_solver.py) e validam a lógica do TspSolver (incluindo podas por budget e inviabilidade). *
 
 ---
 
@@ -155,9 +154,7 @@ A interface do usuário foi desenvolvida com **Streamlit**, permitindo interativ
     # Linux/Mac: source .venv/bin/activate
     
     # Instalar bibliotecas
-    pip install streamlit pandas numpy matplotlib folium streamlit-folium streamlit-option-menu
-    ```
-    *(Alternativamente, crie um arquivo `requirements.txt` com esses nomes e rode `pip install -r requirements.txt`)*
+    rode `pip install -r requirements.txt`
 
 3.  **Gerar os Dados (Execução ÚNICA):**
     Estes scripts só precisam ser rodados uma vez para gerar os arquivos de análise. **Não** os chame de dentro do `main.py`.
